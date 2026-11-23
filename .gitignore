@@ -17,6 +17,7 @@ output/
 !examples/**/*.dxf
 *.svg
 !samples/**/*.svg
+!design/**/assets/*.svg
 preview*.png
 scratch/
 scratch_*

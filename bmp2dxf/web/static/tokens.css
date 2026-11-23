@@ -1,0 +1,57 @@
+/* ============================================================
+   bmp2dxf · Retro Workbench
+   A warm 1970s print-shop / drawing-office palette.
+   ============================================================ */
+
+:root {
+  color-scheme: light;
+
+  /* Paper & ink */
+  --paper: #f3e6cf;
+  --paper-deep: #ead8b9;
+  --card: #fbf2e2;
+  --card-soft: #f7ebd7;
+  --ink: #2e1f14;
+  --muted: #6a5240;
+  --line: #ddc7a4;
+
+  /* Print colours */
+  --primary: #b5471d;
+  --on-primary: #fff6e8;
+  --accent: #e0a526;
+  --green: #2f5d50;
+
+  /* Type */
+  --font-display: "Songti SC", "Noto Serif SC", "Source Han Serif SC",
+    "STSong", "SimSun", serif;
+  --font-body: "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei",
+    system-ui, sans-serif;
+  --font-mono: "Cascadia Code", "Cascadia Mono", "JetBrains Mono", Consolas,
+    "Microsoft YaHei", monospace;
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 20px;
+  --text-xl: 38px;
+
+  /* Shape & depth */
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-xs: 7px;
+  --border: 2px solid var(--ink);
+  --border-thin: 1px solid var(--line);
+  --shadow: 0 4px 0 var(--ink);
+  --shadow-sm: 0 2px 0 var(--ink);
+
+  /* Decoration */
+  --rainbow: repeating-linear-gradient(
+    90deg,
+    var(--primary) 0 28px,
+    var(--accent) 28px 56px,
+    var(--green) 56px 84px,
+    var(--ink) 84px 112px
+  );
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+
+  --ease: cubic-bezier(0.22, 0.68, 0.36, 1);
+}

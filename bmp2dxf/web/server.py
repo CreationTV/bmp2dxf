@@ -275,6 +275,15 @@ def _decode_image_base64(value: str) -> bytes:
     return data
 
 
+SAMPLE_DISPLAY_NAMES = {
+    "mechanical": "机械图",
+    "logo": "标志",
+    "text": "文字",
+    "sketch_scan": "扫描",
+    "icon": "图标",
+}
+
+
 def _list_samples() -> list[dict[str, Any]]:
     """Enumerate the images that live in the repository ``samples/`` folder."""
     if not SAMPLES_DIR.is_dir():
@@ -293,7 +302,7 @@ def _list_samples() -> list[dict[str, Any]]:
             continue
         item: dict[str, Any] = {
             "name": path.name,
-            "display_name": path.stem,
+            "display_name": SAMPLE_DISPLAY_NAMES.get(path.stem, path.stem),
             "url": "/samples/" + quote(path.name),
             "size_bytes": path.stat().st_size,
             "format": SAMPLE_CONTENT_TYPES[suffix].split("/")[-1],

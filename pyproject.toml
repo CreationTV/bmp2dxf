@@ -37,7 +37,7 @@ bmp2dxf = "bmp2dxf.cli:main"
 include = ["bmp2dxf*"]
 
 [tool.setuptools.package-data]
-"bmp2dxf.web" = ["static/*"]
+"bmp2dxf.web" = ["static/*", "legacy/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

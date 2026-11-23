@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="bmp2dxf 本地 Web 工作台：把位图线稿转换为可编辑的 DXF 矢量图，支持实时预览与参数调节。">
+  <title>bmp2dxf · 位图转矢量工作台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b1a2b'/%3E%3Cpath d='M7 11h9l4 4h5' fill='none' stroke='%2338bdf8' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M7 21h7l4-4' fill='none' stroke='%2322d3ee' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='7' cy='11' r='2' fill='%2338bdf8'/%3E%3Ccircle cx='7' cy='21' r='2' fill='%2322d3ee'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="app-header">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32" fill="none">
+        <path d="M6 10h9l4 4h7" stroke="url(#brandGrad)" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M6 22h7l4-4" stroke="url(#brandGrad)" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="6" cy="10" r="2.2" fill="#38bdf8"/>
+        <circle cx="6" cy="22" r="2.2" fill="#22d3ee"/>
+        <circle cx="26" cy="14" r="2.2" fill="#7dd3fc"/>
+        <defs>
+          <linearGradient id="brandGrad" x1="6" y1="10" x2="26" y2="18" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#38bdf8"/><stop offset="1" stop-color="#22d3ee"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </span>
+    <div class="brand-text">
+      <h1>bmp2dxf <span class="brand-accent">位图转矢量工作台</span></h1>
+      <p>本地离线运行 · 线稿 / 描边 / 图标 → DXF</p>
+    </div>
+  </div>
+  <div class="header-side">
+    <span id="servicePill" class="pill pill--muted" role="status" title="本地服务状态">
+      <span class="pill-dot" aria-hidden="true"></span>
+      <span id="serviceText">正在连接本地服务…</span>
+    </span>
+  </div>
+</header>
+
+<main id="main" class="layout">
+  <!-- ===================== 左栏：上传与参数 ===================== -->
+  <div class="col col--controls">
+
+    <section class="card" aria-labelledby="uploadTitle">
+      <div class="card-head">
+        <h2 id="uploadTitle"><span class="step">01</span> 选择图片</h2>
+        <button id="clearImage" class="btn btn--ghost btn--sm" type="button" disabled>清除</button>
+      </div>
+
+      <label id="dropzone" class="dropzone" for="fileInput">
+        <input id="fileInput" class="file-input" type="file"
+               accept="image/png,image/jpeg,image/webp,image/bmp,image/tiff,image/gif,image/x-icon,image/vnd.microsoft.icon,image/tga,image/x-tga"
+               aria-label="选择要转换的图片文件">
+        <span class="dropzone-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 16V5"/><path d="m7.5 9.5 4.5-4.5 4.5 4.5"/>
+            <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>
+          </svg>
+        </span>
+        <span class="dropzone-title">拖拽图片到这里，或<span class="linkish">点击选择</span></span>
+        <span class="dropzone-hint">PNG / JPEG / WebP / BMP / TIFF / GIF · 也可以按 Ctrl + V 粘贴</span>
+      </label>
+
+      <div id="fileMeta" class="file-meta" hidden>
+        <div class="file-thumb" aria-hidden="true"><img id="fileThumb" alt=""></div>
+        <div class="file-info">
+          <span id="fileName" class="file-name">—</span>
+          <span id="fileDims" class="file-dims">—</span>
+          <span id="fileSize" class="file-size">—</span>
+        </div>
+        <button id="changeImage" class="btn btn--ghost btn--sm" type="button">更换</button>
+      </div>
+      <p class="card-note" id="uploadNote">图片只会发送到本机运行的 bmp2dxf 服务，不会上传到网络。</p>
+    </section>
+
+    <section class="card" aria-labelledby="presetTitle">
+      <div class="card-head">
+        <h2 id="presetTitle"><span class="step">02</span> 快捷预设</h2>
+        <button id="resetOptions" class="btn btn--ghost btn--sm" type="button">恢复默认</button>
+      </div>
+      <div class="preset-grid" role="group" aria-label="快捷预设">
+        <button class="preset" type="button" data-preset="line">
+          <span class="preset-name">线稿</span>
+          <span class="preset-desc">工程图 · 中心线</span>
+        </button>
+        <button class="preset" type="button" data-preset="sketch">
+          <span class="preset-name">手绘扫描</span>
+          <span class="preset-desc">抖动笔画 · 多连线</span>
+        </button>
+        <button class="preset" type="button" data-preset="logo">
+          <span class="preset-name">图标轮廓</span>
+          <span class="preset-desc">闭合外形 · 高保真</span>
+        </button>
+        <button class="preset" type="button" data-preset="draft">
+          <span class="preset-name">快速草稿</span>
+          <span class="preset-desc">低精度 · 速度快</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="optionsTitle">
+      <div class="card-head">
+        <h2 id="optionsTitle"><span class="step">03</span> 转换参数</h2>
+        <span class="card-badge">自动重转</span>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-label" id="modeLabel">模式</span>
+        </div>
+        <div id="modeGroup" class="segmented" role="group" aria-labelledby="modeLabel">
+          <button type="button" class="seg is-active" data-mode="auto" aria-pressed="true">自动</button>
+          <button type="button" class="seg" data-mode="centerline" aria-pressed="false">中心线</button>
+          <button type="button" class="seg" data-mode="outline" aria-pressed="false">轮廓</button>
+        </div>
+        <p class="field-note" id="modeNote">根据笔画宽度与填充比例自动选择中心线或轮廓。</p>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <label class="field-label" for="precisionInput">精度</label>
+          <output class="field-value" id="precisionValue" for="precisionInput">70</output>
+        </div>
+        <input type="range" id="precisionInput" min="0" max="100" step="1" value="70"
+               aria-describedby="precisionNote">
+        <p class="field-note" id="precisionNote">数值越高细节越多，节点数量与文件体积也会增加。</p>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <label class="field-label" for="gapInput">断线连接</label>
+          <output class="field-value" id="gapValue" for="gapInput">4 px</output>
+        </div>
+        <input type="range" id="gapInput" min="0" max="40" step="1" value="4"
+               aria-describedby="gapNote">
+        <p class="field-note" id="gapNote">自动连接断开的笔画（源图像素），扫描件可适当增大。</p>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <label class="field-label" for="smoothInput">平滑强度</label>
+          <output class="field-value" id="smoothValue" for="smoothInput">55</output>
+        </div>
+        <input type="range" id="smoothInput" min="0" max="100" step="1" value="55"
+               aria-describedby="smoothNote">
+        <p class="field-note" id="smoothNote">抑制线条抖动；过高会磨掉尖角与细小细节。</p>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-label" id="thresholdLabel">阈值</span>
+        </div>
+        <div id="thresholdGroup" class="segmented segmented--wrap" role="group" aria-labelledby="thresholdLabel">
+          <button type="button" class="seg is-active" data-threshold="auto" aria-pressed="true">自动</button>
+          <button type="button" class="seg" data-threshold="otsu" aria-pressed="false">全局</button>
+          <button type="button" class="seg" data-threshold="adaptive" aria-pressed="false">自适应</button>
+          <button type="button" class="seg" data-threshold="manual" aria-pressed="false">手动</button>
+        </div>
+        <p class="field-note" id="thresholdNote">根据背景光照自动选择全局或局部自适应阈值。</p>
+        <div class="field field--sub" id="manualField" hidden>
+          <div class="field-head">
+            <label class="field-label" for="thresholdInput">手动阈值</label>
+            <output class="field-value" id="thresholdValue" for="thresholdInput">128</output>
+          </div>
+          <input type="range" id="thresholdInput" min="0" max="255" step="1" value="128">
+          <p class="field-note">低于该灰度的像素视为墨迹；背景发灰时调低，墨迹太浅时调高。</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-label" id="invertLabel">反相</span>
+        </div>
+        <div id="invertGroup" class="segmented" role="group" aria-labelledby="invertLabel">
+          <button type="button" class="seg is-active" data-invert="auto" aria-pressed="true">自动</button>
+          <button type="button" class="seg" data-invert="no" aria-pressed="false">正常</button>
+          <button type="button" class="seg" data-invert="yes" aria-pressed="false">反相</button>
+        </div>
+        <p class="field-note">正常 = 深色线条 / 浅色背景；反相 = 浅色线条 / 深色背景。</p>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <label class="field-label" for="dpiInput">DPI</label>
+          <span class="field-hint">决定 DXF 实际尺寸</span>
+        </div>
+        <div class="dpi-row">
+          <div id="dpiGroup" class="segmented segmented--dpi" role="group" aria-label="常用 DPI">
+            <button type="button" class="seg" data-dpi="96" aria-pressed="false">96</button>
+            <button type="button" class="seg" data-dpi="150" aria-pressed="false">150</button>
+            <button type="button" class="seg" data-dpi="300" aria-pressed="false">300</button>
+          </div>
+          <div class="dpi-custom">
+            <input type="number" id="dpiInput" min="10" max="2400" step="1" value="96"
+                   inputmode="numeric" aria-label="自定义 DPI">
+            <span class="unit">dpi</span>
+          </div>
+        </div>
+        <p class="field-note">1 像素 = 25.4 / DPI 毫米；打印或激光切割建议按实际设备设置。</p>
+      </div>
+
+      <details class="advanced" id="advanced">
+        <summary>高级参数</summary>
+        <div class="advanced-body">
+          <div class="field">
+            <div class="field-head">
+              <label class="field-label" for="cornerInput">拐角保留阈值</label>
+              <output class="field-value" id="cornerValue" for="cornerInput">100°</output>
+            </div>
+            <input type="range" id="cornerInput" min="20" max="170" step="1" value="100">
+            <p class="field-note">夹角大于该值的拐角保留为尖角；调小更硬朗，调大更圆润。</p>
+          </div>
+          <div class="field">
+            <div class="field-head">
+              <label class="field-label" for="minDetailInput">最小细节</label>
+              <output class="field-value" id="minDetailValue" for="minDetailInput">自动</output>
+            </div>
+            <input type="range" id="minDetailInput" min="0" max="20" step="0.5" value="0">
+            <p class="field-note">忽略小于该尺寸的细节（源图像素）；0 表示自动判断。</p>
+          </div>
+          <div class="field">
+            <div class="field-head">
+              <label class="field-label" for="dxfVersion">DXF 版本</label>
+            </div>
+            <select id="dxfVersion" class="select">
+              <option value="R2000" selected>R2000（默认，兼容性最佳）</option>
+              <option value="R12">R12（最老的 CAD 软件）</option>
+              <option value="R2010">R2010</option>
+              <option value="R2018">R2018</option>
+            </select>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <section class="card" aria-labelledby="samplesTitle">
+      <div class="card-head">
+        <h2 id="samplesTitle"><span class="step">04</span> 示例图片</h2>
+        <span class="card-badge" id="samplesCount"></span>
+      </div>
+      <div id="samplesGrid" class="samples-grid" aria-live="polite"></div>
+      <p id="samplesEmpty" class="samples-empty" hidden>samples/ 目录中还没有示例图片。</p>
+    </section>
+  </div>
+
+  <!-- ===================== 右栏：预览与结果 ===================== -->
+  <div class="col col--preview">
+
+    <section class="card card--preview" aria-labelledby="previewTitle">
+      <div class="card-head card-head--preview">
+        <h2 id="previewTitle"><span class="step">05</span> 实时预览</h2>
+        <div class="tabs" role="tablist" aria-label="预览视图">
+          <button type="button" class="tab is-active" role="tab" id="tabOriginal"
+                  data-tab="original" aria-selected="true" aria-controls="stage" tabindex="0">原图</button>
+          <button type="button" class="tab" role="tab" id="tabVector"
+                  data-tab="vector" aria-selected="false" aria-controls="stage" tabindex="-1">矢量</button>
+          <button type="button" class="tab" role="tab" id="tabOverlay"
+                  data-tab="overlay" aria-selected="false" aria-controls="stage" tabindex="-1">叠加</button>
+        </div>
+      </div>
+
+      <div id="overlayField" class="overlay-field" hidden>
+        <label for="overlayInput">叠加不透明度</label>
+        <input type="range" id="overlayInput" min="0.3" max="1" step="0.05" value="0.7">
+        <output id="overlayValue" for="overlayInput">70%</output>
+      </div>
+
+      <div id="stage" class="stage" data-view="original" role="tabpanel" aria-labelledby="tabOriginal">
+        <div id="stageMedia" class="stage-media" hidden>
+          <img id="originalImg" class="layer layer--image" alt="原始位图预览">
+          <div id="svgHost" class="layer layer--vector" aria-label="矢量结果预览"></div>
+        </div>
+
+        <div id="stageEmpty" class="stage-overlay stage-empty">
+          <svg class="stage-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="8" y="12" width="48" height="40" rx="5"/>
+            <circle cx="22" cy="25" r="4"/>
+            <path d="m12 45 12-12 8 8 6-6 14 14"/>
+          </svg>
+          <p class="stage-title">还没有图片</p>
+          <p class="stage-desc">从左侧上传或拖入一张线稿，转换结果会实时显示在这里。</p>
+        </div>
+
+        <div id="stageLoading" class="stage-overlay stage-loading" hidden>
+          <span class="spinner" aria-hidden="true"></span>
+          <p id="stageLoadingText" class="stage-title">正在转换…</p>
+          <div class="progress" aria-hidden="true"><span></span></div>
+          <p class="stage-desc">参数变化后会自动重新转换</p>
+        </div>
+
+        <div id="stageError" class="stage-overlay stage-error" hidden>
+          <svg class="stage-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M32 10 6 54h52L32 10Z"/><path d="M32 26v12"/><circle cx="32" cy="46" r="1.6" fill="currentColor"/>
+          </svg>
+          <p class="stage-title">转换失败</p>
+          <p id="stageErrorText" class="stage-desc">发生未知错误。</p>
+          <button id="retryBtn" class="btn btn--primary btn--sm" type="button">重试</button>
+        </div>
+      </div>
+
+      <div class="preview-footer">
+        <span class="status" id="statusText" role="status" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span><span id="statusLabel">等待图片</span>
+        </span>
+        <span class="preview-meta" id="statusMeta"></span>
+      </div>
+
+      <div class="legend" aria-hidden="true">
+        <span class="legend-item"><span class="legend-swatch legend-swatch--center"></span>中心线</span>
+        <span class="legend-item"><span class="legend-swatch legend-swatch--outline"></span>轮廓</span>
+        <span class="legend-item"><span class="legend-swatch legend-swatch--hole"></span>孔洞</span>
+        <span class="legend-spacer"></span>
+        <span class="legend-item legend-item--muted">棋盘格表示透明区域</span>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="resultTitle">
+      <div class="card-head card-head--result">
+        <h2 id="resultTitle"><span class="step">06</span> 转换结果</h2>
+        <div class="download-row">
+          <a id="downloadDxf" class="btn btn--primary btn--disabled" href="#" download
+             aria-disabled="true" role="button">下载 DXF</a>
+          <a id="downloadSvg" class="btn btn--secondary btn--disabled" href="#" download
+             aria-disabled="true" role="button">下载 SVG</a>
+        </div>
+      </div>
+
+      <div id="resultEmpty" class="result-empty">
+        <p>转换完成后，这里会显示路径数量、线长、耗时等统计信息。</p>
+      </div>
+
+      <div id="resultBody" hidden>
+        <div class="stats" id="statsGrid"></div>
+        <div class="reason" id="autoReasonBlock">
+          <span class="reason-label">自动判断理由</span>
+          <p class="reason-text" id="autoReason">—</p>
+        </div>
+        <div class="warnings" id="warnBlock" hidden>
+          <div class="warnings-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+              <path d="M12 4 2.8 20h18.4L12 4Z"/><path d="M12 10v4.5"/><circle cx="12" cy="17.5" r="1" fill="currentColor"/>
+            </svg>
+            <span>需要注意</span>
+          </div>
+          <ul id="warnList" class="warning-list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="card card--tips" aria-label="使用提示">
+      <ul class="tips-list">
+        <li>调整任意参数都会在停顿后自动重新转换，不必手动点击按钮。</li>
+        <li>实心图标建议用「轮廓」，线条画建议用「中心线」或直接交给「自动」。</li>
+        <li>DXF 使用毫米单位与 UP 方向坐标，可直接导入 CAD / CorelDRAW / 激光切割软件。</li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+<footer class="app-footer">
+  <span>bmp2dxf · 本地离线处理</span>
+  <span class="footer-sep" aria-hidden="true">·</span>
+  <span id="footerVersion">版本加载中…</span>
+  <span class="footer-spacer"></span>
+  <span class="footer-hint">快捷键：Ctrl + V 粘贴图片 · Tab 键切换控件</span>
+</footer>
+
+<div id="toasts" class="toasts" aria-live="assertive" aria-atomic="false"></div>
+<span id="liveStatus" class="visually-hidden" aria-live="polite"></span>
+</body>
+</html>

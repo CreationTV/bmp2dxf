@@ -108,6 +108,7 @@
     changeImage: byId("changeImage"),
     uploadNote: byId("uploadNote"),
     resetOptions: byId("resetOptions"),
+    modeValue: byId("modeValue"),
     modeNote: byId("modeNote"),
     precisionInput: byId("precisionInput"),
     precisionValue: byId("precisionValue"),
@@ -302,6 +303,10 @@
     });
 
     els.clearImage.addEventListener("click", clearFile);
+
+    els.dropzone.addEventListener("click", function () {
+      els.fileInput.click();
+    });
 
     els.dropzone.addEventListener("keydown", function (event) {
       if (event.key === "Enter" || event.key === " ") {
@@ -537,6 +542,7 @@
       };
     }
     els.fileName.textContent = state.file.name;
+    els.fileName.title = state.file.name;
     els.fileDims.textContent = dims
       ? dims.width + " × " + dims.height + " px"
       : "尺寸将在转换后显示";
@@ -789,6 +795,9 @@
     setSegmented(invertButtons, "invert", options.invert);
     setSegmented(dpiButtons, "dpi", String(options.dpi));
 
+    if (els.modeValue) {
+      els.modeValue.textContent = MODE_TEXT[options.mode] || "";
+    }
     els.modeNote.textContent = MODE_DESCRIPTION[options.mode] || "";
     els.thresholdNote.textContent =
       THRESHOLD_DESCRIPTION[options.threshold_method] || "";
@@ -1057,7 +1066,7 @@
 
     if (firstResult && !state.scrolledForFile) {
       state.scrolledForFile = true;
-      if (window.matchMedia("(max-width: 980px)").matches) {
+      if (window.matchMedia("(max-width: 1180px)").matches) {
         try {
           els.stage.scrollIntoView({ behavior: "smooth", block: "start" });
         } catch (error) {
@@ -1450,7 +1459,11 @@
       button.type = "button";
       button.className = "sample";
       button.setAttribute("data-sample", sample.name);
-      button.title = sample.display_name || sample.name;
+      button.title =
+        (sample.display_name || sample.name) +
+        (sample.width && sample.height
+          ? " · " + sample.width + "×" + sample.height
+          : "");
 
       var thumb = document.createElement("span");
       thumb.className = "sample-thumb";
