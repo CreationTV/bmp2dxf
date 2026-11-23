@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Generated test / demo output
+out/
+output/
+*.dxf
+!samples/**/*.dxf
+!examples/**/*.dxf
+*.svg
+!samples/**/*.svg
+preview*.png
+scratch/
+scratch_*
+scratch_out/
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
