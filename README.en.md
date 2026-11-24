@@ -8,7 +8,8 @@ It ships with three tracing engines — “centerline”, “outline”, and “
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](pyproject.toml)
 [![Tests](https://github.com/CreationTV/bmp2dxf/actions/workflows/tests.yml/badge.svg)](https://github.com/CreationTV/bmp2dxf/actions/workflows/tests.yml)
-[![Version](https://img.shields.io/badge/version-1.0.0-22d3ee.svg)](pyproject.toml)
+[![Version](https://img.shields.io/badge/version-1.1.0-22d3ee.svg)](pyproject.toml)
+[![Windows portable](https://img.shields.io/badge/Windows-portable%20.zip-B5471D.svg)](https://github.com/CreationTV/bmp2dxf/releases/latest)
 
 ![Mechanical line-art centerline conversion](docs/images/mechanical_centerline_overlay.png)
 
@@ -75,7 +76,24 @@ When the choice looks wrong the tool tells you, and you can switch with the UI o
 
 ## Quick Start
 
-### Windows (recommended, simplest)
+### Windows portable build (recommended, no Python required)
+
+1. Open [Releases](https://github.com/CreationTV/bmp2dxf/releases/latest) and download `bmp2dxf-portable-windows-x64-v1.1.0.zip`.
+2. Extract it to any folder (do not run it from inside the zip).
+3. Double-click **`bmp2dxf.exe`**; the browser opens the local workbench automatically. Close the console window to stop the service.
+
+The portable build bundles the Python runtime, conversion dependencies, and sample images. It does not write to the registry or upload images. If Windows SmartScreen appears on first launch, choose “More info → Run anyway”; the release also includes a `SHA256SUMS.txt` checksum.
+
+The portable build still exposes the CLI:
+
+```bat
+bmp2dxf.exe convert samples\mechanical.png -o out\mechanical.dxf
+bmp2dxf.exe --version
+```
+
+Release notes: [docs/release-v1.1.0.md](docs/release-v1.1.0.md).
+
+### Windows from source
 
 1. Install [Python 3.10+](https://www.python.org/downloads/) (tick *Add Python to PATH* during setup).
 2. Double-click **`安装依赖.bat`** (first run only).
@@ -319,6 +337,7 @@ bmp2dxf/
   models.py            VectorPath / ConversionResult / Stats
   pipeline.py          full conversion pipeline
   cli.py               the bmp2dxf command line
+  portable.py          portable entry: no arguments starts the local web workbench
   engine/
     image_io.py        image formats, alpha channel, EXIF, 16-bit grayscale
     preprocess.py      inversion detection, resizing, denoise, Otsu/adaptive threshold
@@ -330,7 +349,9 @@ bmp2dxf/
     dxf.py             ezdxf export (millimeters / layers / closed)
     svg.py             SVG preview export
   web/                 local web UI (stdlib HTTP server + front end)
-scripts/               scripts that generate sample images and previews
+packaging/             PyInstaller entry, icon, and Windows version resource
+bmp2dxf.spec           PyInstaller one-folder packaging configuration
+scripts/               sample/preview generation and portable build scripts
 samples/               demo images ready to drag into the UI
 examples/              generated DXF samples
 tests/                 automated tests
@@ -388,6 +409,15 @@ python -m venv .venv
 ```
 
 - Regenerating sample/preview images: `python scripts/make_samples.py`, `python scripts/make_examples.py`
+- Building the Windows portable release:
+
+  ```bat
+  .venv\Scripts\python -m pip install -e ".[build]"
+  .venv\Scripts\python scripts\build_portable.py
+  ```
+
+  Outputs `dist/bmp2dxf-portable/`, `dist/bmp2dxf-portable-windows-x64-v1.1.0.zip`, and `dist/SHA256SUMS.txt`.
+- Regenerating the application icon: `python scripts/make_icon.py`
 - Code style: standard library + type hints; the core algorithms do not depend on the UI.
 - Issues / PRs are welcome: new failure cases (image + expectation) are the most helpful.
 

@@ -8,7 +8,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](pyproject.toml)
 [![Tests](https://github.com/CreationTV/bmp2dxf/actions/workflows/tests.yml/badge.svg)](https://github.com/CreationTV/bmp2dxf/actions/workflows/tests.yml)
-[![Version](https://img.shields.io/badge/version-1.0.0-22d3ee.svg)](pyproject.toml)
+[![Version](https://img.shields.io/badge/version-1.1.0-22d3ee.svg)](pyproject.toml)
+[![Windows portable](https://img.shields.io/badge/Windows-portable%20.zip-B5471D.svg)](https://github.com/CreationTV/bmp2dxf/releases/latest)
 
 ![机械线稿中心线转换效果](docs/images/mechanical_centerline_overlay.png)
 
@@ -75,7 +76,24 @@ bmp2dxf 把这些问题当作核心设计目标：
 
 ## 快速开始
 
-### Windows（推荐，最简单）
+### Windows 便携版（推荐，无需安装 Python）
+
+1. 打开 [Releases](https://github.com/CreationTV/bmp2dxf/releases/latest) 下载 `bmp2dxf-portable-windows-x64-v1.1.0.zip`。
+2. 解压到任意文件夹（不要在压缩包内直接运行）。
+3. 双击 **`bmp2dxf.exe`**，浏览器会自动打开本地工作台；关闭控制台窗口即停止服务。
+
+便携版内置 Python 运行时、转换依赖和示例图片，不写注册表，也不上传图片。首次运行若遇到 Windows SmartScreen 提示，点「更多信息 → 仍要运行」即可；发布包同时提供 `SHA256SUMS.txt` 校验值。
+
+也可以在命令行中使用便携版：
+
+```bat
+bmp2dxf.exe convert samples\mechanical.png -o out\mechanical.dxf
+bmp2dxf.exe --version
+```
+
+发布说明见 [docs/release-v1.1.0.md](docs/release-v1.1.0.md)。
+
+### Windows 从源码运行
 
 1. 安装 [Python 3.10+](https://www.python.org/downloads/)（安装时勾选 *Add Python to PATH*）。
 2. 双击 **`安装依赖.bat`**（只需第一次运行）。
@@ -319,6 +337,7 @@ bmp2dxf/
   models.py            VectorPath / ConversionResult / Stats
   pipeline.py          完整转换流水线
   cli.py               bmp2dxf 命令行
+  portable.py          便携版入口：无参数启动本地 Web 工作台
   engine/
     image_io.py        图片格式、透明通道、EXIF、16 位灰度
     preprocess.py      反相判断、缩放、去噪、Otsu/自适应阈值
@@ -330,7 +349,9 @@ bmp2dxf/
     dxf.py             ezdxf 导出（毫米/图层/闭合）
     svg.py             SVG 预览导出
   web/                 本地 Web UI（标准库 HTTP 服务 + 前端）
-scripts/               示例图与预览生成脚本
+packaging/             PyInstaller 入口、图标和 Windows 版本资源
+bmp2dxf.spec           PyInstaller one-folder 打包配置
+scripts/               示例图、预览和便携版构建脚本
 samples/               可直接拖进 UI 的演示图片
 examples/              已生成的 DXF 示例
 tests/                 自动化测试
@@ -388,6 +409,15 @@ python -m venv .venv
 ```
 
 - 示例图/预览图重新生成：`python scripts/make_samples.py`、`python scripts/make_examples.py`
+- Windows 便携版构建：
+
+  ```bat
+  .venv\Scripts\python -m pip install -e ".[build]"
+  .venv\Scripts\python scripts\build_portable.py
+  ```
+
+  输出 `dist/bmp2dxf-portable/`、`dist/bmp2dxf-portable-windows-x64-v1.1.0.zip` 和 `dist/SHA256SUMS.txt`。
+- 应用图标重新生成：`python scripts/make_icon.py`
 - 代码风格：标准库 + 类型注解；核心算法不依赖 UI。
 - 欢迎提交 Issue / PR：新的失败样例（图片 + 期望）最有帮助。
 
