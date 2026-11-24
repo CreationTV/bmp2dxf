@@ -8,7 +8,7 @@ It ships with three tracing engines — “centerline”, “outline”, and “
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](pyproject.toml)
 [![Tests](https://github.com/CreationTV/bmp2dxf/actions/workflows/tests.yml/badge.svg)](https://github.com/CreationTV/bmp2dxf/actions/workflows/tests.yml)
-[![Version](https://img.shields.io/badge/version-1.1.0-22d3ee.svg)](pyproject.toml)
+[![Version](https://img.shields.io/badge/version-1.1.1-22d3ee.svg)](pyproject.toml)
 [![Windows portable](https://img.shields.io/badge/Windows-portable%20.zip-B5471D.svg)](https://github.com/CreationTV/bmp2dxf/releases/latest)
 
 ![Mechanical line-art centerline conversion](docs/images/mechanical_centerline_overlay.png)
@@ -78,7 +78,7 @@ When the choice looks wrong the tool tells you, and you can switch with the UI o
 
 ### Windows portable build (recommended, no Python required)
 
-1. Open [Releases](https://github.com/CreationTV/bmp2dxf/releases/latest) and download `bmp2dxf-portable-windows-x64-v1.1.0.zip`.
+1. Open [Releases](https://github.com/CreationTV/bmp2dxf/releases/latest) and download `bmp2dxf-portable-windows-x64-v1.1.1.zip`.
 2. Extract it to any folder (do not run it from inside the zip).
 3. Double-click **`bmp2dxf.exe`**; the browser opens the local workbench automatically. Close the console window to stop the service.
 
@@ -91,7 +91,7 @@ bmp2dxf.exe convert samples\mechanical.png -o out\mechanical.dxf
 bmp2dxf.exe --version
 ```
 
-Release notes: [docs/release-v1.1.0.md](docs/release-v1.1.0.md).
+Release notes: [docs/release-v1.1.1.md](docs/release-v1.1.1.md).
 
 ### Windows from source
 
@@ -416,7 +416,7 @@ python -m venv .venv
   .venv\Scripts\python scripts\build_portable.py
   ```
 
-  Outputs `dist/bmp2dxf-portable/`, `dist/bmp2dxf-portable-windows-x64-v1.1.0.zip`, and `dist/SHA256SUMS.txt`.
+  Outputs `dist/bmp2dxf-portable/`, `dist/bmp2dxf-portable-windows-x64-v1.1.1.zip`, and `dist/SHA256SUMS.txt`.
 - Regenerating the application icon: `python scripts/make_icon.py`
 - Code style: standard library + type hints; the core algorithms do not depend on the UI.
 - Issues / PRs are welcome: new failure cases (image + expectation) are the most helpful.

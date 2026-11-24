@@ -459,10 +459,12 @@ class _RequestHandler(BaseHTTPRequestHandler):
             target = _safe_resolve(STATIC_DIR, relative)
             if target is None or not target.is_file():
                 raise _HttpError(404, "静态资源不存在。")
+            # Local UI assets change with each build; revalidate them so an
+            # updated executable never shows a stale page from the browser cache.
             self._send_file(
                 target,
                 _content_type_for(target, STATIC_CONTENT_TYPES),
-                "public, max-age=3600",
+                "no-cache",
             )
             return
         if path.startswith("/samples/"):

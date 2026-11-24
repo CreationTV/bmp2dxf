@@ -17,12 +17,12 @@ VSVersionInfo(
           [
             StringStruct('CompanyName', 'CreationTV'),
             StringStruct('FileDescription', 'bmp2dxf - bitmap to DXF vector workbench'),
-            StringStruct('FileVersion', '1.1.0'),
+            StringStruct('FileVersion', '1.1.1'),
             StringStruct('InternalName', 'bmp2dxf'),
             StringStruct('LegalCopyright', 'Copyright (c) CreationTV; MIT License'),
             StringStruct('OriginalFilename', 'bmp2dxf.exe'),
             StringStruct('ProductName', 'bmp2dxf'),
-            StringStruct('ProductVersion', '1.1.0')
+            StringStruct('ProductVersion', '1.1.1')
           ]
         )
       ]

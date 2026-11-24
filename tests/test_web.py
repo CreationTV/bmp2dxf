@@ -152,10 +152,12 @@ def test_index_page(web_server: str) -> None:
     html = body.decode("utf-8")
     assert "bmp2dxf" in html
     assert "/static/app.js" in html
+    assert "/static/app.js?v=" in html
     assert 'lang="zh-CN"' in html
     assert 'data-mode="color"' in html
     assert 'id="langToggle"' in html
     assert "/static/i18n.js" in html
+    assert "/static/i18n.js?v=" in html
     assert html.index("/static/i18n.js") < html.index("/static/app.js")
 
 
@@ -163,17 +165,19 @@ def test_static_assets(web_server: str) -> None:
     status, headers, body = _http("GET", web_server + "/static/app.js")
     assert status == 200
     assert "javascript" in (_header(headers, "Content-Type") or "")
-    assert _header(headers, "Cache-Control")
+    assert "no-cache" in (_header(headers, "Cache-Control") or "")
     assert len(body) > 100
 
     status, headers, body = _http("GET", web_server + "/static/style.css")
     assert status == 200
     assert "text/css" in (_header(headers, "Content-Type") or "")
+    assert "no-cache" in (_header(headers, "Cache-Control") or "")
     assert len(body) > 100
 
     status, headers, body = _http("GET", web_server + "/static/i18n.js")
     assert status == 200
     assert "javascript" in (_header(headers, "Content-Type") or "")
+    assert "no-cache" in (_header(headers, "Cache-Control") or "")
     i18n = body.decode("utf-8")
     assert "bmp2dxf.lang" in i18n
     assert "langToggle" in i18n

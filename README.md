@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](pyproject.toml)
 [![Tests](https://github.com/CreationTV/bmp2dxf/actions/workflows/tests.yml/badge.svg)](https://github.com/CreationTV/bmp2dxf/actions/workflows/tests.yml)
-[![Version](https://img.shields.io/badge/version-1.1.0-22d3ee.svg)](pyproject.toml)
+[![Version](https://img.shields.io/badge/version-1.1.1-22d3ee.svg)](pyproject.toml)
 [![Windows portable](https://img.shields.io/badge/Windows-portable%20.zip-B5471D.svg)](https://github.com/CreationTV/bmp2dxf/releases/latest)
 
 ![机械线稿中心线转换效果](docs/images/mechanical_centerline_overlay.png)
@@ -78,7 +78,7 @@ bmp2dxf 把这些问题当作核心设计目标：
 
 ### Windows 便携版（推荐，无需安装 Python）
 
-1. 打开 [Releases](https://github.com/CreationTV/bmp2dxf/releases/latest) 下载 `bmp2dxf-portable-windows-x64-v1.1.0.zip`。
+1. 打开 [Releases](https://github.com/CreationTV/bmp2dxf/releases/latest) 下载 `bmp2dxf-portable-windows-x64-v1.1.1.zip`。
 2. 解压到任意文件夹（不要在压缩包内直接运行）。
 3. 双击 **`bmp2dxf.exe`**，浏览器会自动打开本地工作台；关闭控制台窗口即停止服务。
 
@@ -91,7 +91,7 @@ bmp2dxf.exe convert samples\mechanical.png -o out\mechanical.dxf
 bmp2dxf.exe --version
 ```
 
-发布说明见 [docs/release-v1.1.0.md](docs/release-v1.1.0.md)。
+发布说明见 [docs/release-v1.1.1.md](docs/release-v1.1.1.md)。
 
 ### Windows 从源码运行
 
@@ -416,7 +416,7 @@ python -m venv .venv
   .venv\Scripts\python scripts\build_portable.py
   ```
 
-  输出 `dist/bmp2dxf-portable/`、`dist/bmp2dxf-portable-windows-x64-v1.1.0.zip` 和 `dist/SHA256SUMS.txt`。
+  输出 `dist/bmp2dxf-portable/`、`dist/bmp2dxf-portable-windows-x64-v1.1.1.zip` 和 `dist/SHA256SUMS.txt`。
 - 应用图标重新生成：`python scripts/make_icon.py`
 - 代码风格：标准库 + 类型注解；核心算法不依赖 UI。
 - 欢迎提交 Issue / PR：新的失败样例（图片 + 期望）最有帮助。
