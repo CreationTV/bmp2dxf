@@ -34,6 +34,9 @@ class PreparedImage:
 
     warnings: list[str] = field(default_factory=list)
     image_format: str = ""
+    # Working-resolution RGB copy (uint8) when the source has colour.  The
+    # colour-boundary engine works on this directly instead of the gray mask.
+    rgb: np.ndarray | None = None
 
 
 def _odd(value: int) -> int:
@@ -41,13 +44,22 @@ def _odd(value: int) -> int:
     return value if value % 2 == 1 else value + 1
 
 
-def _background_brightness_spread(gray: np.ndarray, grid: int = 6) -> float:
+def _background_brightness_spread(
+    gray: np.ndarray,
+    grid: int = 6,
+    neutral: np.ndarray | None = None,
+) -> float:
     """Estimate how much the page/background brightness varies.
 
     The image is split into tiles and each tile's *bright* percentile is
     measured.  Tiles dominated by ink are ignored.  Uniform drawings (even
     with huge solid shapes) therefore report a small spread, while a scanned
     page with vignetting or a lighting gradient reports a large one.
+
+    When a colour image is supplied, only near-neutral pixels are measured.
+    Saturated fills are not "lighting" and must not make the whole image look
+    unevenly lit; that would wrongly switch a flat colour artwork to a local
+    adaptive threshold.
     """
     h, w = gray.shape
     gh = max(2, min(grid, h // 64 if h >= 128 else 2))
@@ -66,7 +78,18 @@ def _background_brightness_spread(gray: np.ndarray, grid: int = 6) -> float:
             tile = gray[y0:y1, x0:x1]
             if tile.size < 64:
                 continue
-            level = float(np.percentile(tile, 80.0))
+            if neutral is not None:
+                tile_neutral = neutral[y0:y1, x0:x1]
+                # If a tile has very few neutral pixels it is almost certainly
+                # a coloured painted area, not the page/background.
+                if float(tile_neutral.mean()) < 0.08:
+                    continue
+                values = tile[tile_neutral]
+                if values.size < 32:
+                    continue
+                level = float(np.percentile(values, 80.0))
+            else:
+                level = float(np.percentile(tile, 80.0))
             if level > 100.0:  # ignore tiles that are mostly foreground
                 levels.append(level)
     if len(levels) < 3:
@@ -176,6 +199,15 @@ def _resize_gray(gray: np.ndarray, work_w: int, work_h: int) -> np.ndarray:
     return np.asarray(image, dtype=np.float32)
 
 
+def _resize_rgb(rgb: np.ndarray, work_w: int, work_h: int) -> np.ndarray:
+    rgb_u8 = np.ascontiguousarray(np.clip(rgb, 0, 255).astype(np.uint8))
+    if rgb_u8.shape[1] == work_w and rgb_u8.shape[0] == work_h:
+        return rgb_u8
+    image = Image.fromarray(rgb_u8, mode="RGB")
+    image = image.resize((work_w, work_h), Image.Resampling.LANCZOS)
+    return np.ascontiguousarray(np.asarray(image, dtype=np.uint8))
+
+
 def _looks_like_photo(gray: np.ndarray, mask: np.ndarray) -> bool:
     """A conservative heuristic: continuous-tone photos vectorise poorly."""
     values = np.clip(gray, 0, 255).astype(np.uint8)
@@ -218,6 +250,12 @@ def prepare(
     scale_x = work_w / float(loaded.source_width)
     scale_y = work_h / float(loaded.source_height)
     work_scale = (scale_x + scale_y) * 0.5
+
+    rgb_work: np.ndarray | None = None
+    neutral: np.ndarray | None = None
+    if loaded.rgb is not None and loaded.rgb.ndim == 3:
+        rgb_work = _resize_rgb(loaded.rgb, work_w, work_h)
+
     if factor < 1.0:
         warnings.append(
             f"图片已缩放至 {work_w}×{work_h} 进行矢量化（精度 {options.precision}，"
@@ -229,6 +267,20 @@ def prepare(
         sigma = 0.35 + (1.0 - options.precision / 100.0) * 0.45
         if sigma > 0.01:
             gray = ndimage.gaussian_filter(gray, sigma=sigma, mode="nearest")
+            if rgb_work is not None:
+                blurred = ndimage.gaussian_filter(
+                    rgb_work.astype(np.float32),
+                    sigma=(sigma, sigma, 0.0),
+                    mode="nearest",
+                )
+                rgb_work = np.clip(blurred, 0, 255).astype(np.uint8)
+
+    if rgb_work is not None:
+        chroma_work = (
+            rgb_work.max(axis=2).astype(np.int16)
+            - rgb_work.min(axis=2).astype(np.int16)
+        )
+        neutral = chroma_work <= 12
 
     # -- threshold ----------------------------------------------------------
     method = options.threshold_method
@@ -238,7 +290,7 @@ def prepare(
             method = "manual"
             auto_reason = "使用手动阈值。"
         else:
-            bg_spread = _background_brightness_spread(gray)
+            bg_spread = _background_brightness_spread(gray, neutral=neutral)
             if bg_spread > 12.0:
                 method = "adaptive"
                 auto_reason = (
@@ -307,4 +359,5 @@ def prepare(
         work_scale=work_scale,
         warnings=warnings,
         image_format=loaded.image_format,
+        rgb=rgb_work,
     )

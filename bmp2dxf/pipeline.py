@@ -9,6 +9,7 @@ import numpy as np
 
 from .config import ConvertOptions, derive_tuning
 from .engine import centerline as centerline_engine
+from .engine import color as color_engine
 from .engine import outline as outline_engine
 from .engine.image_io import load_image
 from .engine.preprocess import prepare
@@ -66,25 +67,75 @@ def convert(
     )
     warnings: list[str] = list(prepared.warnings)
 
+    color_analysis = None
+    if prepared.rgb is not None:
+        if options.mode == "auto":
+            # Cheap colour-first probe: photos and monochrome-ish RGB inputs
+            # must not pay the full quantize/region analysis cost.
+            if color_engine.probe_color(prepared.rgb):
+                color_analysis = color_engine.analyze_color(prepared.rgb)
+        elif options.mode == "color":
+            color_analysis = color_engine.analyze_color(prepared.rgb)
+
     mode_used = options.mode
     auto_reason = ""
     skeleton = None
     dt = None
     if options.mode == "auto":
-        if not prepared.mask.any():
+        if color_analysis is not None and color_analysis.is_color_art:
+            mode_used = "color"
+            auto_reason = color_analysis.reason
+        elif not prepared.mask.any():
             mode_used = "centerline"
             auto_reason = "空图像。"
         else:
             mode_used, auto_reason, skeleton, dt = centerline_engine.decide_mode(
                 prepared.mask
             )
+    elif options.mode == "color":
+        if color_analysis is None:
+            mode_used = "outline"
+            auto_reason = "彩色模式需要彩色图片；已回退到轮廓模式。"
+            warnings.append(
+                "这张图片没有可用的颜色信息（灰度/16 位/浮点图），"
+                "彩色模式已回退到轮廓模式。"
+            )
+        else:
+            mode_used = "color"
+            auto_reason = "手动选择彩色边界模式。"
+            if not color_analysis.is_color_art:
+                warnings.append(
+                    "图像不是明显的彩色平涂画面；彩色模式会直接追踪所有颜色区域边界，"
+                    "连续色调照片可能产生较多碎线。"
+                )
     else:
         auto_reason = "手动选择模式。"
     stats.mode_used = mode_used
     stats.auto_reason = auto_reason
 
+    if mode_used == "color":
+        # In colour mode the grayscale foreground warnings are not meaningful:
+        # a full-page flat colour can legitimately cover almost everything.
+        warnings = [
+            message
+            for message in warnings
+            if "几乎没有检测到前景" not in message
+            and "前景几乎覆盖整张图片" not in message
+            and "连续色调照片" not in message
+        ]
+
     work_paths: list[VectorPath] = []
-    if prepared.mask.any():
+    if mode_used == "color":
+        color_result = color_engine.extract_color_paths(
+            prepared, tuning, options, analysis=color_analysis
+        )
+        work_paths = color_result.paths
+        stats.junction_count = color_result.junction_count
+        stats.spur_prune_count = color_result.spur_prune_count
+        stats.bridge_count = color_result.bridge_count
+        stats.duplicate_removed = color_result.duplicate_removed
+        warnings.extend(color_result.warnings)
+    elif prepared.mask.any():
         if mode_used == "centerline":
             if skeleton is None or dt is None:
                 skeleton, dt = centerline_engine.compute_skeleton(prepared.mask)
@@ -127,7 +178,7 @@ def convert(
     stats.total_length_mm = stats.total_length_px * stats.mm_per_px
     stats.duration_ms = (time.perf_counter() - started) * 1000.0
 
-    if not paths and prepared.mask.any():
+    if not paths and (prepared.mask.any() or mode_used == "color"):
         warnings.append("未生成任何矢量路径；请尝试调整精度、阈值或模式。")
     # Deduplicate warnings while preserving order.
     seen: set[str] = set()

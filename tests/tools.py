@@ -6,7 +6,7 @@ import io
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
 SAMPLES = ROOT / "samples"
@@ -78,6 +78,70 @@ def donut_image(
         d.ellipse([int(v * s) for v in inner], fill=255)
 
     return render(width, height, draw)
+
+
+def color_art_image(width: int = 600, height: int = 400) -> Image.Image:
+    """Flat colour blocks with adjacent fills, similar to a painted sketch."""
+    scale = 3
+    image = Image.new("RGB", (width * scale, height * scale), "white")
+    draw = ImageDraw.Draw(image)
+    red = (214, 72, 58)
+    blue = (60, 120, 190)
+    green = (70, 145, 92)
+    yellow = (236, 176, 45)
+    draw.rectangle(
+        [40 * scale, 40 * scale, 300 * scale, 185 * scale], fill=red
+    )
+    draw.rectangle(
+        [300 * scale, 40 * scale, 560 * scale, 185 * scale], fill=blue
+    )
+    draw.rectangle(
+        [40 * scale, 205 * scale, 280 * scale, 360 * scale], fill=green
+    )
+    draw.ellipse(
+        [330 * scale, 215 * scale, 520 * scale, 360 * scale], fill=yellow
+    )
+    return image.resize((width, height), Image.Resampling.LANCZOS)
+
+
+def color_ink_image(width: int = 500, height: int = 380) -> Image.Image:
+    """Colour fills with black ink outlines, as in a marker drawing."""
+    scale = 3
+    image = Image.new("RGB", (width * scale, height * scale), "white")
+    draw = ImageDraw.Draw(image)
+    draw.rectangle(
+        [70 * scale, 55 * scale, 290 * scale, 220 * scale],
+        fill=(210, 80, 55),
+        outline=0,
+        width=5 * scale,
+    )
+    draw.ellipse(
+        [310 * scale, 120 * scale, 450 * scale, 300 * scale],
+        fill=(80, 145, 190),
+        outline=0,
+        width=5 * scale,
+    )
+    draw.line(
+        [(60 * scale, 310 * scale), (450 * scale, 310 * scale)],
+        fill=0,
+        width=5 * scale,
+    )
+    return image.resize((width, height), Image.Resampling.LANCZOS)
+
+
+def photo_like_image(width: int = 320, height: int = 240) -> Image.Image:
+    """A smooth gradient with noise: high chroma but not flat colour art."""
+    rng = np.random.default_rng(7)
+    x = np.linspace(0.0, 1.0, width, dtype=np.float32)
+    y = np.linspace(0.0, 1.0, height, dtype=np.float32)
+    xx, yy = np.meshgrid(x, y)
+    red = 170.0 + 60.0 * xx + 18.0 * np.sin(xx * 8.0)
+    green = 110.0 + 80.0 * yy + 18.0 * np.cos(yy * 5.0)
+    blue = 80.0 + 90.0 * xx * yy
+    array = np.dstack([red, green, blue])
+    array += rng.normal(0.0, 10.0, array.shape)
+    array = np.clip(array, 0, 255).astype(np.uint8)
+    return Image.fromarray(array, mode="RGB").filter(ImageFilter.GaussianBlur(0.9))
 
 
 def point_segment_distance(point, start, end) -> float:

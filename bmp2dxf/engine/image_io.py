@@ -22,10 +22,20 @@ class LoadedImage:
     image_format: str = ""
     mode: str = ""
     warnings: list[str] = field(default_factory=list)
+    # Original colours (uint8 RGB) for images that have them.  ``None`` for
+    # grayscale / 16-bit / float inputs: their colour information is either
+    # absent or fragile to preserve through Pillow's modes.
+    rgb: np.ndarray | None = None
 
 
-def _to_gray_array(image: Image.Image) -> tuple[np.ndarray, list[str]]:
-    """Convert any Pillow image into a float32 grayscale array in 0..255."""
+def _to_gray_array(
+    image: Image.Image,
+) -> tuple[np.ndarray, list[str], np.ndarray | None]:
+    """Convert any Pillow image into a float32 grayscale array in 0..255.
+
+    Also returns an RGB array when the source carries meaningful colour, which
+    lets the colour-boundary engine run before grayscale information is lost.
+    """
     warnings: list[str] = []
     mode = image.mode
 
@@ -33,21 +43,21 @@ def _to_gray_array(image: Image.Image) -> tuple[np.ndarray, list[str]]:
         arr = np.asarray(image).astype(np.float64)
         scale = 65535.0 if arr.max(initial=0) > 255 else 255.0
         arr = np.clip(arr / scale * 255.0, 0, 255)
-        return arr.astype(np.float32), warnings
+        return arr.astype(np.float32), warnings, None
 
     if mode == "I":
         arr = np.asarray(image).astype(np.float64)
         high = float(arr.max()) if arr.size else 0.0
         if high > 255:
             arr = arr * (255.0 / high)
-        return np.clip(arr, 0, 255).astype(np.float32), warnings
+        return np.clip(arr, 0, 255).astype(np.float32), warnings, None
 
     if mode == "F":
         arr = np.asarray(image, dtype=np.float64)
         finite = arr[np.isfinite(arr)]
         if finite.size and float(finite.max()) <= 1.0001:
             arr = arr * 255.0
-        return np.clip(arr, 0, 255).astype(np.float32), warnings
+        return np.clip(arr, 0, 255).astype(np.float32), warnings, None
 
     # Anything with transparency is composited on white, which is what a
     # person would expect when vectorising a logo or sticker.
@@ -58,11 +68,17 @@ def _to_gray_array(image: Image.Image) -> tuple[np.ndarray, list[str]]:
         rgba = image.convert("RGBA")
         background = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
         image = Image.alpha_composite(background, rgba)
-    if image.mode in ("P", "CMYK", "YCbCr", "LAB", "HSV"):
-        image = image.convert("RGB")
-    if image.mode != "L":
-        image = image.convert("L")
-    return np.asarray(image, dtype=np.float32), warnings
+
+    # Monochrome bitmaps have no colour information worth preserving.
+    if image.mode == "1":
+        return np.asarray(image.convert("L"), dtype=np.float32), warnings, None
+    if image.mode in ("L", "LA"):
+        return np.asarray(image.convert("L"), dtype=np.float32), warnings, None
+
+    rgb_image = image if image.mode == "RGB" else image.convert("RGB")
+    rgb = np.asarray(rgb_image, dtype=np.uint8)
+    gray = np.asarray(rgb_image.convert("L"), dtype=np.float32)
+    return gray, warnings, np.ascontiguousarray(rgb)
 
 
 def load_image(source: Any) -> LoadedImage:
@@ -130,7 +146,7 @@ def load_image(source: Any) -> LoadedImage:
     if width * height > 120_000_000:
         raise ValueError("图片像素超过 1.2 亿，请先缩小后再转换")
 
-    gray, extra_warnings = _to_gray_array(image)
+    gray, extra_warnings, rgb = _to_gray_array(image)
     warnings.extend(extra_warnings)
     return LoadedImage(
         gray=np.ascontiguousarray(gray, dtype=np.float32),
@@ -139,6 +155,7 @@ def load_image(source: Any) -> LoadedImage:
         image_format=str(fmt).upper(),
         mode=image.mode,
         warnings=warnings,
+        rgb=rgb,
     )
 
 

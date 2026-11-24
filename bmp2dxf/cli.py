@@ -61,7 +61,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--preset", choices=sorted(PRESETS), help="快捷预设（可被后面的显式参数覆盖）"
     )
     convert_p.add_argument(
-        "-m", "--mode", choices=("auto", "centerline", "outline"), help="转换模式"
+        "-m", "--mode", choices=("auto", "centerline", "outline", "color"), help="转换模式"
     )
     convert_p.add_argument(
         "-p", "--precision", type=int, metavar="0-100", help="转换精度（默认 70）"

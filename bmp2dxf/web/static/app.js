@@ -63,11 +63,12 @@
     }
   };
 
-  var MODE_TEXT = { auto: "自动", centerline: "中心线", outline: "轮廓" };
+  var MODE_TEXT = { auto: "自动", centerline: "中心线", outline: "轮廓", color: "彩色" };
   var MODE_DESCRIPTION = {
-    auto: "根据笔画宽度与填充比例自动选择中心线或轮廓。",
+    auto: "根据笔画宽度与填充比例自动选择中心线、轮廓或彩色边界。",
     centerline: "沿笔画中线生成单线路径，适合线稿、扫描草图、CAD 描图。",
-    outline: "沿墨迹边缘生成闭合轮廓，适合图标、标志、实心色块。"
+    outline: "沿墨迹边缘生成闭合轮廓，适合图标、标志、实心色块。",
+    color: "追踪相邻色块之间的边界，适合彩色手绘、插画、平涂色块。"
   };
   var THRESHOLD_TEXT = {
     auto: "自动",

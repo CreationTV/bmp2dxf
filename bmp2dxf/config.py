@@ -6,7 +6,7 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 
-VALID_MODES = ("auto", "centerline", "outline")
+VALID_MODES = ("auto", "centerline", "outline", "color")
 VALID_THRESHOLD_METHODS = ("auto", "otsu", "adaptive", "manual")
 VALID_INVERT = ("auto", "yes", "no")
 VALID_DXF_VERSIONS = ("R12", "R2000", "R2010", "R2018")

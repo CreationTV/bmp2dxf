@@ -22,6 +22,8 @@ from PIL import Image, ImageDraw
 from bmp2dxf.web import PortInUseError, create_server
 from bmp2dxf.web.server import ConversionJobCache, ConvertJob
 
+from tools import color_art_image, to_png
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -151,6 +153,7 @@ def test_index_page(web_server: str) -> None:
     assert "bmp2dxf" in html
     assert "/static/app.js" in html
     assert 'lang="zh-CN"' in html
+    assert 'data-mode="color"' in html
 
 
 def test_static_assets(web_server: str) -> None:
@@ -205,6 +208,22 @@ def test_convert_outline_mode(web_server: str) -> None:
     assert data["mode_used"] == "outline"
     assert data["stats"]["path_count"] > 0
     assert data["stats"]["closed_path_count"] > 0
+
+
+def test_convert_color_mode(web_server: str) -> None:
+    png = to_png(color_art_image(420, 280))
+    payload = _convert_payload(
+        image_base64=base64.b64encode(png).decode("ascii"),
+        filename="colour_art.png",
+        options={"mode": "auto", "precision": 70},
+    )
+    status, _headers, body = _http("POST", web_server + "/api/convert", payload)
+    assert status == 200, body.decode("utf-8", "replace")
+    data = _json(body)
+    assert data["ok"] is True
+    assert data["mode_used"] == "color"
+    assert data["stats"]["path_count"] > 0
+    assert "<svg" in data["svg"]
 
 
 def test_download_dxf_is_valid(web_server: str, conversion: dict) -> None:
