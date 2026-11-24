@@ -1,6 +1,6 @@
 /* ============================================================
-   bmp2dxf · Retro Workbench
-   Desktop software surface for the bitmap → DXF tool.
+   bmp2dxf 路 Retro Workbench
+   Desktop software surface for the bitmap 鈫?DXF tool.
    Tokens live in tokens.css.
    ============================================================ */
 
@@ -1225,7 +1225,7 @@ h2 {
 }
 
 /* ---------- responsive ---------- */
-@media (max-width: 1180px) {
+@media (max-width: 1279px) {
   .masthead {
     gap: 16px;
     padding-right: 150px;
@@ -1249,7 +1249,7 @@ h2 {
   }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1279px) {
   body {
     overflow: auto;
   }
@@ -2128,7 +2128,7 @@ a.btn {
   color: var(--muted);
 }
 
-@media (min-width: 1181px) {
+@media (min-width: 1280px) {
   html,
   body {
     height: 100%;
@@ -2157,7 +2157,7 @@ a.btn {
   }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1279px) {
   .stage-media {
     max-width: 100%;
   }
@@ -2221,4 +2221,114 @@ a.btn {
   .sample-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+/* ============================================================
+   Language toggle (EN / 涓枃)
+   Appended after the application bridge so it also applies to
+   the real workbench page.
+   ============================================================ */
+.lang-toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 34px;
+  padding: 0 10px;
+  border: var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition:
+    background 160ms var(--ease),
+    transform 160ms var(--ease),
+    box-shadow 160ms var(--ease);
+}
+
+.lang-toggle:hover {
+  background: var(--accent);
+  transform: translateY(-1px);
+}
+
+.lang-toggle:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.lang-toggle:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .lang-toggle {
+    height: 32px;
+    min-width: 42px;
+  }
+}
+
+/* English result stats: longer words need a little more room than the
+   three-character Chinese labels; keep the 20px display size and widen
+   the columns instead of shrinking the type. */
+html[lang="en"] .result-panel--wide .stats {
+  gap: 8px;
+  grid-template-columns: 1.2fr 0.83fr 1.12fr 1.25fr;
+}
+
+/* The threshold value is a secondary readout ("130 路 Global"). */
+html[lang="en"] #statsGrid .stat:nth-child(8) .stat-value {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 900px) {
+  html[lang="en"] .result-panel--wide .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 10px;
+  }
+}
+
+/* File card: give the filename a little more room at narrow rail widths. */
+.file-card {
+  gap: 6px;
+  padding: 5px;
+}
+
+.file-thumb {
+  width: 58px;
+  height: 48px;
+}
+
+/* Footer metadata may wrap; never clip the filename/size. */
+.foot-meta {
+  max-width: 48%;
+  overflow: visible;
+  line-height: 1.35;
+  text-align: right;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+@media (max-width: 640px) {
+  .foot-meta {
+    max-width: 56%;
+  }
+}
+.file-card {
+  gap: 5px;
+  padding: 4px;
+}
+
+.file-thumb {
+  width: 54px;
+  height: 46px;
 }

@@ -34,6 +34,10 @@
           <span class="status-dot" aria-hidden="true"></span>
           <span id="serviceText">本地离线 · 检测中</span>
         </span>
+        <button class="lang-toggle" id="langToggle" type="button"
+                title="Switch to English" aria-label="Switch to English">
+          <span id="langToggleLabel">EN</span>
+        </button>
       </div>
     </header>
 
@@ -385,6 +389,7 @@
   <div class="toasts" id="toasts" aria-live="assertive" aria-atomic="false"></div>
   <span class="visually-hidden" id="liveStatus" aria-live="polite"></span>
 
+  <script src="/static/i18n.js" defer></script>
   <script src="/static/app.js" defer></script>
 </body>
 </html>

@@ -154,6 +154,9 @@ def test_index_page(web_server: str) -> None:
     assert "/static/app.js" in html
     assert 'lang="zh-CN"' in html
     assert 'data-mode="color"' in html
+    assert 'id="langToggle"' in html
+    assert "/static/i18n.js" in html
+    assert html.index("/static/i18n.js") < html.index("/static/app.js")
 
 
 def test_static_assets(web_server: str) -> None:
@@ -167,6 +170,13 @@ def test_static_assets(web_server: str) -> None:
     assert status == 200
     assert "text/css" in (_header(headers, "Content-Type") or "")
     assert len(body) > 100
+
+    status, headers, body = _http("GET", web_server + "/static/i18n.js")
+    assert status == 200
+    assert "javascript" in (_header(headers, "Content-Type") or "")
+    i18n = body.decode("utf-8")
+    assert "bmp2dxf.lang" in i18n
+    assert "langToggle" in i18n
 
 
 def test_static_unknown_file_is_404_json(web_server: str) -> None:
